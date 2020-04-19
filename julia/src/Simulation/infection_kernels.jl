@@ -42,6 +42,7 @@ function enqueue_transmissions!(state::SimState, ::Type{Val{HouseholdContact}}, 
   household = householdof(params,source_id)
   
   if 1 == length(household)
+
     return
   end
   
@@ -62,11 +63,14 @@ function enqueue_transmissions!(state::SimState, ::Type{Val{HouseholdContact}}, 
   time_dist = Exponential(mean_infection_time)
   
   for subject_id in household
+
     if subject_id == source_id || Healthy != health(state, subject_id)
       continue
     end
       
+
     infection_time = time(state) + rand(state.rng, time_dist)
+
     if infection_time > max_time
       continue
     end
