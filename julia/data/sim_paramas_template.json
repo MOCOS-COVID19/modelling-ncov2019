@@ -1,5 +1,5 @@
 {
-  "random_seed": "range(1)",
+  "random_seed": "100",
   "output_root_dir": "outputs",
   "experiment_id": "regenerated_grid_SD_Fear_Wroclaw_10_200",
   "save_input_data": false,
@@ -10,7 +10,7 @@
   "population_path" : "../data/simulations/mini-population.jld2",
   "contact_tracking": {
     "probability" : 0.5,
-	  "delay" : 1.0
+	  "delay" : 2.0
   },
   "transmission_probabilities": {
     "household": 1.0,

@@ -75,7 +75,7 @@ function main()
 		param_dict = JSON.parsefile(parsed_args["JSON"])
 		rng = MersenneTwister()
 		max_num_infected = param_dict["stop_simulation_threshold"]
-		num_trajectories = 100 #param_dict["random_seed"] 
+		num_trajectories = param_dict["random_seed"] 
 		num_initial_infected = param_dict["initial_conditions"]["cardinalities"]["infectious"]   #100?
 		parameters = read_params(param_dict, rng) 
 	end
