@@ -20,25 +20,9 @@ end
 
 
 function read_params(parameters, rng)
-	# SIM_PARAMS from JSON
-
-	#=
-	max_num_infected = 100 # parameters["stop_simulation_threshold"]
-	num_trajectories = 100 # parameters["random_seed"] 
-	num_initial_infected = 100 # parameters["initial_conditions"]["cardinalities"]["infectious"] #100?
-	constant_kernel_param = 1.0 # parameters["transmission_probabilities"]["constant"]
-	household_kernel_param = 0.3 #parameters["transmission_probabilities"]["household"]
-	mild_detection_prob = 0.0 # parameters["detection_mild_proba"]
-	=#
-
-
-	
 	constant_kernel_param = parameters["transmission_probabilities"]["constant"]  |> Float64
 	household_kernel_param = parameters["transmission_probabilities"]["household"] |> Float64
 	mild_detection_prob = parameters["detection_mild_proba"]  |> Float64
-
-
-	# needs to be added to josn 
 	tracking_prob = parameters["contact_tracking"]["probability"]  |> Float64
 	tracking_delay = parameters["contact_tracking"]["delay"]  |> Float64
 	population_path = parameters["population_path"] # <= JSON

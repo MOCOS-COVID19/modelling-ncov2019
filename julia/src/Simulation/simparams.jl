@@ -28,10 +28,13 @@ using Distributions
 struct SimParams 
   household_ptrs::Vector{Tuple{UInt32,UInt32}}  # (i1,i2) where i1 and i2 are the indices of first and last member of the household
     
-  progressions::Vector{Progression}
+  progressions::Vector{Progression} # not sure if progressions should be there
     
   constant_kernel_param::Float64
   household_kernel_param::Float64
+
+  hospital_detections::Bool
+  mild_detection_prob::Float64
 
   backward_tracking_prob::Float32
   backward_detection_delay::TimeDiff
@@ -46,11 +49,13 @@ end
 progressionof(params::SimParams, person_id::Integer) = params.progressions[person_id]
 severityof(params::SimParams, person_id::Integer) = progressionof(params, person_id).severity
 householdof(params::SimParams, person_id::Integer) = UnitRange(params.household_ptrs[person_id]...)
+num_individuals(params::SimParams) = length(params.household_ptrs)
 
 function load_params(rng=MersenneTwister(0);
         population::Union{AbstractString,DataFrame},
         kwargs...
         )
+        
   individuals_df::DataFrame = isa(population, AbstractString) ? load_individuals(population) : population
   
   num_individuals = individuals_df |> nrow
@@ -70,8 +75,10 @@ function load_params(rng=MersenneTwister(0);
     dist_severe_recovery_time
   )
   
-  make_params(rng, individuals_df=individuals_df, progressions=progressions)
+  make_params(rng, individuals_df=individuals_df, progressions=progressions; kwargs...)
 end
+
+make_household_ptrs(household_indices) = collect( zip(groupptrs(household_indices)...))
 
 function make_params(rng::AbstractRNG=MersenneTwister(0);
         individuals_df::DataFrame,
@@ -79,6 +86,9 @@ function make_params(rng::AbstractRNG=MersenneTwister(0);
 
         constant_kernel_param::Float64=1.0,
         household_kernel_param::Float64=1.0,
+        
+        hospital_detections::Bool=true,
+        mild_detection_prob::Float64=0.0,
         
         backward_tracking_prob::Float64=1.0,
         backward_detection_delay::Float64=1.0,
@@ -100,8 +110,12 @@ function make_params(rng::AbstractRNG=MersenneTwister(0);
   params = SimParams(
     household_ptrs,
     progressions,        
+    
     constant_kernel_param,   
     household_kernel_param,
+    
+    hospital_detections,
+    mild_detection_prob,
     
     backward_tracking_prob,
     backward_detection_delay,
