@@ -23,12 +23,18 @@ using Distributions
 #  household_ptrs::Vector{Tuple{UInt32,UInt32}}  # (i1,i2) where i1 and i2 are the indices of first and last member of the household
 #  
 #end
+struct HospitalInfectionParams
+  hospital_staff_ids::Vector{UInt32}
+  kernel_constant::Float64
+end
 
 
 struct SimParams 
   household_ptrs::Vector{Tuple{UInt32,UInt32}}  # (i1,i2) where i1 and i2 are the indices of first and last member of the household
     
   progressions::Vector{Progression} # not sure if progressions should be there
+    
+  hospital_kernel_params::Union{Nothing, HospitalInfectionParams}  # nothing if hospital kernel not active  
     
   constant_kernel_param::Float64
   household_kernel_param::Float64
@@ -53,6 +59,7 @@ num_individuals(params::SimParams) = length(params.household_ptrs)
 
 function load_params(rng=MersenneTwister(0);
         population::Union{AbstractString,DataFrame},
+        hospital_kernel_param::Float64=0.0,
         kwargs...
         )
         
@@ -77,7 +84,12 @@ function load_params(rng=MersenneTwister(0);
     dist_death_time
   )
   
-  make_params(rng, individuals_df=individuals_df, progressions=progressions; kwargs...)
+  hospital_staff_ids =  if 0.0 < hospital_kernel_param;       (UInt32(1):UInt32(num_individuals))[individuals_df.ishealthcare]
+                        elseif 0.0 == hospital_kernel_param;  nothing
+                        else                                  error("hospital_kernel_param must be postive, got $hospital_kernel_param")
+                        end
+  
+  make_params(rng, individuals_df=individuals_df, progressions=progressions, hospital_staff_ids=hospital_staff_ids; kwargs...)
 end
 
 make_household_ptrs(household_indices) = collect( zip(groupptrs(household_indices)...))
@@ -85,6 +97,9 @@ make_household_ptrs(household_indices) = collect( zip(groupptrs(household_indice
 function make_params(rng::AbstractRNG=MersenneTwister(0);
         individuals_df::DataFrame,
         progressions::AbstractArray{Progression},
+        
+        hospital_staff_ids::Union{Nothing, Vector{UInt32}}=nothing,
+        hospital_kernel_param::Float64=0.0,
 
         constant_kernel_param::Float64=1.0,
         household_kernel_param::Float64=1.0,
@@ -110,9 +125,16 @@ function make_params(rng::AbstractRNG=MersenneTwister(0);
 
   household_ptrs = make_household_ptrs(individuals_df.household_index)
   
+  hospital_kernel_params = ifelse(hospital_staff_ids==nothing || hospital_kernel_param==0, 
+    nothing, 
+    HospitalInfectionParams(hospital_staff_ids, hospital_kernel_param)
+  )
+  
   params = SimParams(
     household_ptrs,
-    progressions,        
+    progressions,
+    
+    hospital_kernel_params,
     
     constant_kernel_param,   
     household_kernel_param,
