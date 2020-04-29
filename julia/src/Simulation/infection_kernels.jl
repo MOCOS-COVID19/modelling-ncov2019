@@ -7,7 +7,8 @@ function enqueue_transmissions!(state::SimState, ::Type{Val{ConstantKernelContac
   end_time =  if      !ismissing(progression.mild_symptoms_time);   progression.mild_symptoms_time 
               elseif  !ismissing(progression.severe_symptoms_time); progression.severe_symptoms_time
               elseif  !ismissing(progression.recovery_time);        progression.recovery_time
-              else    error("no recovery nor symptoms time defined")
+              elseif  !ismissing(progression.death_time);           progression.death_time
+              else    error("no recovery nor death nor symptoms time defined")
               end  
           
   total_infection_rate = (end_time - start_time) * params.constant_kernel_param
@@ -52,7 +53,8 @@ function enqueue_transmissions!(state::SimState, ::Type{Val{HouseholdContact}}, 
   
   end_time =  if      !ismissing(progression.severe_symptoms_time); progression.severe_symptoms_time
               elseif  !ismissing(progression.recovery_time);        progression.recovery_time
-              else    error("no recovery nor severe symptoms time defined")
+              elseif  !ismissing(progression.death_time);           progression.death_time
+              else    error("no recovery nor death nor severe symptoms time defined")
               end
    
   max_time = time(state) - start_time + end_time 

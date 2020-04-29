@@ -107,13 +107,20 @@ function execute!(::Val{BecomeInfectiousEvent}, state::SimState, params::SimPara
     @assert !ismissing(progression.recovery_time)
     push!(state.queue, Event(Val(RecoveryEvent), infected_time + progression.recovery_time, subject_id))  
   elseif Mild == severity
-    @assert !ismissing(progression.mild_symptoms_time)
-    push!(state.queue, Event(Val(MildSymptomsEvent), infected_time + progression.mild_symptoms_time, subject_id))
-  elseif Severe == severity || Critical == severity # treat all critical as if they were Severe cases
     if !ismissing(progression.mild_symptoms_time)
       push!(state.queue, Event(Val(MildSymptomsEvent), infected_time + progression.mild_symptoms_time, subject_id))
     else
+      @assert !ismissing(progression.death_time)
+      push!(state.queue, Event(Val(DeathEvent), infected_time + progression.death_time, subject_id))
+    end
+  elseif Severe == severity || Critical == severity # treat all critical as if they were Severe cases
+    if !ismissing(progression.mild_symptoms_time)
+      push!(state.queue, Event(Val(MildSymptomsEvent), infected_time + progression.mild_symptoms_time, subject_id))
+    elseif !ismissing(progression.severe_symptoms_time)
       push!(state.queue, Event(Val(SevereSymptomsEvent), infected_time + progression.severe_symptoms_time, subject_id))
+    else
+      @assert !ismissing(progression.death_time)
+      push!(state.queue, Event(Val(DeathEvent), infected_time + progression.death_time, subject_id))
     end
   else
     @error "Unsupported severity $severity"
@@ -142,9 +149,13 @@ function execute!(::Val{MildSymptomsEvent}, state::SimState, params::SimParams, 
   infection_time = time(event) - progression.mild_symptoms_time
 
   if Severe == progression.severity || Critical == progression.severity
-    @assert !ismissing(progression.severe_symptoms_time)
-    @assert infection_time + progression.severe_symptoms_time >= time(event) "$(infection_time + progression.severe_symptoms_time) !>= $(time(event))"
-    push!(state.queue, Event(Val(SevereSymptomsEvent), infection_time + progression.severe_symptoms_time, subject_id))
+    if !ismissing(progression.severe_symptoms_time)
+      @assert infection_time + progression.severe_symptoms_time >= time(event) "$(infection_time + progression.severe_symptoms_time) !>= $(time(event))"
+      push!(state.queue, Event(Val(SevereSymptomsEvent), infection_time + progression.severe_symptoms_time, subject_id))
+    else
+      @assert !ismissing(progression.death_time)
+      push!(state.queue, Event(Val(DeathEvent), infection_time + progression.death_time, subject_id))
+    end
   else
     @assert infection_time + progression.recovery_time > time(event) "next event time $(infection_time + progression.recovery_time) is than current event $event"
     @assert (Mild == progression.severity) "unexpected severity $(progression.severity)"
@@ -250,7 +261,7 @@ function execute!(::Val{GoHospitalEvent}, state::SimState, params::SimParams, ev
 end
 
 function execute!(::Val{ReleasedEvent}, state::SimState, params::SimParams, event::Event)::Bool
-  @assert Recovered == subjecthealth(state, event)
+  @assert subjecthealth(state, event) in SA[Dead, Recovered]
   setfreedom!(state, subject(event), Released)
   return true
 end

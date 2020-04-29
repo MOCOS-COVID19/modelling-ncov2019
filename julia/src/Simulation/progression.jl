@@ -21,6 +21,8 @@ const severity_dists = [
   Categorical([0,  0.596,  0.102,  0.302]),
 ]
 
+const death_probs = [0, 0, 0, 0.49]
+
 #const severity_dists_hacked = [
 #  Categorical([0,  0.746,  0.250,  0.004]),
 #  Categorical([0,  0.742,  0.250,  0.008]),
@@ -44,13 +46,19 @@ function sample_severity(rng::AbstractRNG, age::Real)
   severity = rand(rng, dist) |> Severity
 end
 
+function sample_if_death(rng::AbstractRNG, severity::Severity)
+  severity_int = severity |> UInt8
+  death_prob = death_probs[severity_int]
+  rand(rng) < death_prob
+end
 
 @inline function sample_progression(rng::AbstractRNG, age::Real, 
     dist_incubation, 
     dist_symptom_onset, 
     dist_hospitalization,         
     dist_mild_recovery,
-    dist_severe_recovery
+    dist_severe_recovery,
+    dist_death_time
   )
 
   severity = sample_severity(rng, age)
@@ -76,7 +84,27 @@ end
   else
     recovery_time = mild_symptoms_time + rand(rng, dist_mild_recovery)
   end
-    
+  # # TODO we need to handle death event better :
+  #if sample_if_death(rng, severity)
+  #  death_time = incubation_time + rand(rng, dist_death_time)
+  #  if death_time <= severe_symptoms_time
+  #    severe_symptoms_time = missing
+  #  end
+  #  if !ismissing(mild_symptoms_time) && death_time <= mild_symptoms_time
+  #    mild_symptoms_time = missing
+  #  end
+  #  recovery_time = missing
+  #end
+  # # but for now lets use this (first go to hospital, then eventually enqueue death event)
+
+  if sample_if_death(rng, severity)
+    death_time = incubation_time + rand(rng, dist_death_time)
+    if death_time < severe_symptoms_time
+      death_time = severe_symptoms_time
+    end
+    recovery_time = missing
+  end
+
   Progression(
     severity,
     incubation_time |> TimeDiff,
@@ -93,7 +121,8 @@ function resample_progressions!(rng::AbstractRNG,
                                 dist_symptom_onset_time, 
                                 dist_hospitalization_time,
                                 dist_mild_recovery_time,
-                                dist_severe_recovery_time
+                                dist_severe_recovery_time,
+                                dist_death_time
                                 )
 
   for i in 1:length(ages)
@@ -102,7 +131,8 @@ function resample_progressions!(rng::AbstractRNG,
       dist_symptom_onset_time, 
       dist_hospitalization_time,
       dist_mild_recovery_time,
-      dist_severe_recovery_time)
+      dist_severe_recovery_time,
+      dist_death_time)
   end
   progressions
 end
