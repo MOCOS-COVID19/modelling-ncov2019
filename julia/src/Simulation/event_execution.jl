@@ -125,8 +125,11 @@ function execute!(::Val{BecomeInfectiousEvent}, state::SimState, params::SimPara
 
   
   detectioncheck!(state, params, subject_id)
-  
-  if(rand(state.rng) < params.mild_detection_prob)
+
+  if ishealthcare(params, subject_id) && rand(state.rng) < params.hospital_kernel_params.heathcare_detection_prob
+    delay = params.hostpital_kernel_params.healthcare_detection_prob
+    push!(state.queue, Event(Val(DetectionOutsideQuarantineEvent), time(event)+delay, subject_id))  
+  elseif(rand(state.rng) < params.mild_detection_prob)
     push!(state.queue, Event(Val(DetectedOutsideQuarantineEvent), time(event)+2, subject_id))
   end
   

@@ -24,8 +24,12 @@ using Distributions
 #  
 #end
 struct HospitalInfectionParams
+  ishealthcare::BitVector
   hospital_staff_ids::Vector{UInt32}
   kernel_constant::Float64
+  
+  healthcare_detection_prob::Float64
+  healthcare_detection_delay::Float64
 end
 
 
@@ -55,11 +59,12 @@ end
 progressionof(params::SimParams, person_id::Integer) = params.progressions[person_id]
 severityof(params::SimParams, person_id::Integer) = progressionof(params, person_id).severity
 householdof(params::SimParams, person_id::Integer) = UnitRange(params.household_ptrs[person_id]...)
+ishealthcare(params::SimParams, person_id::Integer)::Bool = nothing == params.hospital_kernel_params ? false : params.hospital_kernel_params.ishealthcare[person_id]
 num_individuals(params::SimParams) = length(params.household_ptrs)
+
 
 function load_params(rng=MersenneTwister(0);
         population::Union{AbstractString,DataFrame},
-        hospital_kernel_param::Float64=0.0,
         kwargs...
         )
         
@@ -84,13 +89,9 @@ function load_params(rng=MersenneTwister(0);
     dist_death_time
   )
   
-  hospital_staff_ids =  if 0.0 < hospital_kernel_param;       (UInt32(1):UInt32(num_individuals))[individuals_df.ishealthcare]
-                        elseif 0.0 == hospital_kernel_param;  nothing
-                        else                                  error("hospital_kernel_param must be postive, got $hospital_kernel_param")
-                        end
-  
-  make_params(rng, individuals_df=individuals_df, progressions=progressions, hospital_staff_ids=hospital_staff_ids; kwargs...)
+  make_params(rng, individuals_df=individuals_df, progressions=progressions; kwargs...)
 end
+
 
 make_household_ptrs(household_indices) = collect( zip(groupptrs(household_indices)...))
 
@@ -98,12 +99,13 @@ function make_params(rng::AbstractRNG=MersenneTwister(0);
         individuals_df::DataFrame,
         progressions::AbstractArray{Progression},
         
-        hospital_staff_ids::Union{Nothing, Vector{UInt32}}=nothing,
+        ishealthcare::Union{Nothing, BitVector}=nothing,
         hospital_kernel_param::Float64=0.0,
-
+        healthcare_detection_prob::Float64=0.8,
+        healthcare_detection_delay::Float64=1.0,
+        
         constant_kernel_param::Float64=1.0,
         household_kernel_param::Float64=1.0,
-        hospital_kernel_param::Float64=0.0,
         
         hospital_detections::Bool=true,
         mild_detection_prob::Float64=0.0,
@@ -125,10 +127,18 @@ function make_params(rng::AbstractRNG=MersenneTwister(0);
 
   household_ptrs = make_household_ptrs(individuals_df.household_index)
   
-  hospital_kernel_params = ifelse(hospital_staff_ids==nothing || hospital_kernel_param==0, 
-    nothing, 
-    HospitalInfectionParams(hospital_staff_ids, hospital_kernel_param)
-  )
+  
+  hospital_kernel_params =  if(ishealthcare==nothing || hospital_kernel_param==0.0); nothing
+                            elseif 0.0 < hospital_kernel_param; 
+                              HospitalInfectionParams(
+                                ishealthcare,
+                                (UInt32(1):UInt32(num_individuals))[individuals_df.ishealthcare],
+                                hospital_kernel_param,
+                                healthcare_detection_prob,
+                                healthcate_detection_delay
+                              )
+                            else error("hospital_kernel_param must be postive, got $hospital_kernel_param")
+                            end
   
   params = SimParams(
     household_ptrs,
