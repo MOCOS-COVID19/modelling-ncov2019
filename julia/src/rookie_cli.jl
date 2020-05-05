@@ -177,8 +177,8 @@ function main()
     try
       Simulation.simulate!(state, params, callback)
     catch err
-      println(stderr, "iteration ", trajectory_id, " failed")
-      println(stderr, stacktrace(catch_backtrace()))
+      println(stderr, "iteration ", trajectory_id, " failed: ", err)
+      foreach( println, stacktrace(catch_backtrace()))
     end
     
     GC.gc()

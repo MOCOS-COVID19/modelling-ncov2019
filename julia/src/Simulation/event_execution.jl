@@ -455,7 +455,7 @@ function backtrack!(state::SimState, params::SimParams, person_id::Integer; trac
   if uses_phone_tracking(params, person_id) && 
       uses_phone_tracking(params, backward_id) && 
       rand(state.rng) < params.phone_tracking_params.detection_prob
-    push!(state.queue, Event(Val(TrackedEvent), current_time + params.phone_tracking_params.detection_delay))
+    push!(state.queue, Event(Val(TrackedEvent), current_time + params.phone_tracking_params.detection_delay, backward_id, person_id))
   elseif rand(state.rng) < params.backward_tracking_prob 
     push!(state.queue, Event(Val(TrackedEvent), current_time + params.backward_detection_delay, backward_id, person_id))
   end
@@ -497,7 +497,7 @@ function forwardtrack!(state::SimState, params::SimParams, person_id::Integer; t
     if uses_phone_tracking(params, person_id) && 
         uses_phone_tracking(params, forward_id) && 
         rand(state.rng) < params.phone_tracking_params.detection_prob
-      push!(state.queue, Event(Val(TrackedEvent), current_time + params.phone_tracking_params.detection_delay))
+      push!(state.queue, Event(Val(TrackedEvent), current_time + params.phone_tracking_params.detection_delay), forward_id, person_id)
     elseif rand(state.rng) < params.forward_tracking_prob 
       push!(state.queue, Event(Val(TrackedEvent), current_time + params.forward_detection_delay, forward_id, person_id))
     end

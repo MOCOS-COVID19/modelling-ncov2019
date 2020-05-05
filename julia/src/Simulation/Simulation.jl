@@ -25,7 +25,7 @@ include("eventqueue.jl")
 include("robin_forest.jl")
 const InfectionForest = RobinForest
 include("simstate.jl")
-include("progression.jl")
+
 include("simparams.jl")
 
 include("event_execution.jl")
