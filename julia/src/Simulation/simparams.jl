@@ -141,7 +141,7 @@ function make_params(
                             else error("hospital_kernel_param must be postive or 0, got $hospital_kernel_param")
                             end
   phone_tracking_params = if 0 == phone_tracking_usage; nothing
-                      elseif 0.0 < phone_tracking_usage
+                      elseif 0.0 < phone_tracking_usage <= 1.0
                         PhoneTrackingParams(rng, num_individuals, phone_tracking_usage)
                       else error("tracking_app_usage must be nonnegative, got $phone_tracking_usage")
                       end
