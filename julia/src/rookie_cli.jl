@@ -174,12 +174,12 @@ function main()
     Simulation.initialfeed!(state, num_initial_infected)
 
     callback = DetectionCallback(Simulation.num_individuals(params), max_num_infected) #TODO reset!(cb)
-    try
+    #try
       Simulation.simulate!(state, params, callback)
-    catch err
-      println(stderr, "iteration ", trajectory_id, " failed: ", err)
-      foreach( println, stacktrace(catch_backtrace()))
-    end
+    #catch err
+    #  println(stderr, "iteration ", trajectory_id, " failed: ", err)
+    #  foreach( println, stacktrace(catch_backtrace()))
+    #end
     
     GC.gc()
     
