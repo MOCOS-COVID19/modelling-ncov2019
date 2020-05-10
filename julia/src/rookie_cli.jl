@@ -28,7 +28,6 @@ function read_params(json, rng::AbstractRNG)
   mild_detection_prob = json["detection_mild_proba"]  |> Float64
 
   tracking_prob = json["contact_tracking"]["probability"]  |> Float64
-  tracking_delay = json["contact_tracking"]["delay"]  |> Float64
   tracking_backward_delay = json["contact_tracking"]["backward_detection_delay"]  |> Float64
   tracking_forward_delay = json["contact_tracking"]["forward_detection_delay"]  |> Float64
   tracking_testing_delay = json["contact_tracking"]["testing_time"]  |> Float64
