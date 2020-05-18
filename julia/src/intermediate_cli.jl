@@ -31,7 +31,7 @@ function read_params(json, rng::AbstractRNG)
   tracking_prob = json["contact_tracking"]["probability"]  |> Float64
   tracking_backward_delay = json["contact_tracking"]["backward_detection_delay"]  |> Float64
   tracking_forward_delay = json["contact_tracking"]["forward_detection_delay"]  |> Float64
-  tracking_testing_delay = json["contact_tracking"]["testing_time"]  |> Float64
+  testing_time = json["contact_tracking"]["testing_time"]  |> Float64
 
   phone_tracking_usage = json["phone_tracking"]["usage"] |> Float64
   phone_tracking_testing_delay = json["phone_tracking"]["detection_delay"] |> Float64
@@ -57,7 +57,7 @@ function read_params(json, rng::AbstractRNG)
     forward_tracking_prob = tracking_prob,
     forward_detection_delay = tracking_forward_delay,
         
-    testing_time = tracking_testing_delay,
+    testing_time = testing_time,
 
     phone_tracking_usage = phone_tracking_usage,
     phone_detection_delay = phone_tracking_testing_delay
@@ -125,45 +125,6 @@ const comma = ','
 const float_with_offset(offset, time) = float(offset + time)
 
 
-function progression_csv_output(path::AbstractString, state::Simulation.SimState, params::Simulation.SimParams)
-  io = open(path, "w")
-  try    
-    # print header
-    println(io, "infection_time", comma, "subject_id", comma, "source_id", comma, "contact_kind", comma, "severity", comma, "incubation_time", comma, "mild_time", comma, "severe_time", comma, "recovery_time", comma, "death_time")
-          
-    for (e, p) in zip(state.forest.inedges, params.progressions)
-      if Simulation.NoContact == e.contact_kind
-        continue
-      end
-      t = Simulation.time(e)
-      
-      # print row
-      println(io, float(t), comma, e.subject_id, comma, e.source_id, comma, UInt8(e.contact_kind),
-                  comma, p.severity, comma, float(t+p.incubation_time), comma, float_with_offset(t, p.mild_symptoms_time),
-                  comma, float_with_offset(t, p.severe_symptoms_time), comma, float_with_offset(t, p.recovery_time), 
-                  comma, float_with_offset(t, p.death_time))
-    end
-  finally
-    close(io)  
-  end
-  nothing
-end
-
-function callback_csv_output(path::AbstractString, cb::DetectionCallback)
-  io = open(path, "w")
-  try
-    println(io, "subject_id", comma, "detection_time", comma, "detection_type", comma, "tracking_source_id")
-    for (i, (time_detection, type_detection, tracking_source)) in enumerate(zip(cb.detection_times, cb.detection_types, cb.tracking_sources))
-      if 0 == type_detection
-        continue
-      end
-      println(io, i, comma, Float32(time_detection), comma, type_detection, comma, tracking_source)
-    end
-  finally
-    close(io)
-  end
-  nothing
-end
 
 function save_infections_and_detections(path::AbstractString, simstate::Simulation.SimState, callback::DetectionCallback)
   #try
@@ -208,11 +169,6 @@ function main()
     Simulation.saveparams(dict, params)
   end
 
-  #
-  #states = Vector{Simulation.SimState}(undef, nthreads())
-  #@threads for i in 1:nthreads()
-  #  states[i] = Simulation.SimState(num_individuals, seed=0)
-  #end
   states = [Simulation.SimState(num_individuals, seed=123) for _ in 1:nthreads()]
   callbacks = [DetectionCallback(num_individuals, max_num_infected) for _ in 1:nthreads()]
 
@@ -236,8 +192,6 @@ function main()
       unlock(writelock)
     end
     
-    #progression_csv_output(output_prefix*"progressions_$(trajectory_id).csv", state, params)
-    #callback_csv_output(output_prefix*"detections_$(trajectory_id).csv", callback)
     ProgressMeter.next!(progress) # is thread-safe
   end
 end
