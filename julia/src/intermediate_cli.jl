@@ -99,9 +99,6 @@ end
 
 isdetection(ek::Simulation.EventKind) = ek == Simulation.DetectedOutsideQuarantineEvent || ek == Simulation.DetectedFromTrackingEvent || ek == Simulation.DetectedFromQuarantineEvent
 istransmission(ek::Simulation.EventKind) = ek == Simulation.TransmissionEvent || ek == Simulation.OutsideInfectionEvent
-isquarantine(ek::Simulation.EventKind) = ek == Simulation.QuarantinedEvent || ek == Simulation.QuarantineEndEvent
-ishospitalized(ek::Simulation.EventKind) = ek == Simulation.GoHospitalEvent
-isdeath(ek::Simulation.EventKind) = ek == Simulation.DeathEvent
 
 function (cb::DetectionCallback)(event::Simulation.Event, state::Simulation.SimState, params::Simulation.SimParams)
   eventkind = Simulation.kind(event)
