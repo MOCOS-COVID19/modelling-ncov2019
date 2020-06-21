@@ -18,7 +18,7 @@ df = CSV.read(joinpath(prefix_path, "parameters_map.csv")) |> DataFrame
 output_dirs = map( x-> joinpath(prefix_path, x, "output"), df.path)
 
 results = @showprogress pmap(output_dirs) do path
-  load(joinpath(path, "summary.jld2"), "last_infecitons", "num_infections") 
+  load(joinpath(path, "summary.jld2"), "last_infections", "num_infections") 
 end
 
 last_infections = getindex.(results, 1)
