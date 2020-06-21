@@ -50,7 +50,7 @@ function main()
   @assert length(ARGS) > 0 "JSON file needed"
 
   json = JSON.parsefile(ARGS[1], dicttype=OrderedDict)
-  workdir = ARGS[2]
+  workdir = length(ARGS)>1 ? ARGS[2] : splitext(ARGS[1])[1]
 
   rangepaths = findranges(json) |> sort
   ranges = map(x->getbypath(json, x) |> parserange, rangepaths)

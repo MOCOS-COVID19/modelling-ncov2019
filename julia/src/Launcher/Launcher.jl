@@ -50,15 +50,14 @@ function launch()
   writelock = ReentrantLock()
   progress = ProgressMeter.Progress(num_trajectories)
   GC.gc()
-  #@threads 
-  for trajectory_id in 1:num_trajectories
+  @threads for trajectory_id in 1:num_trajectories
     state = states[threadid()]
     Simulation.reset!(state, trajectory_id)
     Simulation.initialfeed!(state, num_initial_infected)
 
     callback = callbacks[threadid()]
     reset!(callback)
-  #  try
+    try
       Simulation.simulate!(state, params, callback)
       try
         lock(writelock) # JLD2 is not thread-safe, not even when files are separate
@@ -67,10 +66,10 @@ function launch()
         GC.gc()
         unlock(writelock)
       end
-  #  catch err
-  #    println(stderr, "Failed on thread ", threadid(), " iteration ", trajectory_id, " failed: ", err)
-  #    foreach(x -> println(stderr, x), stacktrace(catch_backtrace()))
-  #  end
+    catch err
+      println(stderr, "Failed on thread ", threadid(), " iteration ", trajectory_id, " failed: ", err)
+      foreach(x -> println(stderr, x), stacktrace(catch_backtrace()))
+    end
     
     ProgressMeter.next!(progress) # is thread-safe
   end
