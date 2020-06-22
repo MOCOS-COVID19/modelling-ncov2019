@@ -61,7 +61,7 @@ function main()
   xpath, ypath = rangepaths
   xrange, yrange = ranges
 
-  df = DataFrame([String[], Float64[], Float64[]], ["path", join(xpath, "_"), join(ypath, "_")])
+  df = DataFrame([String[], Float64[], Float64[]], [:path, Symbol(join(xpath, "_")), Symbol(join(ypath, "_"))])
 
   for (x,xval) in enumerate(xrange)
     for (y,yval) in enumerate(yrange)
