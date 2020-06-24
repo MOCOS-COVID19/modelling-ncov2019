@@ -23,8 +23,10 @@ include("outputs.jl")
 export launch
 
 function launch()
-  # set more threads by setting JULIA_NUM_THREADS environment variable
   @info "Stated" nthreads()
+  if nthreads() == 1
+    @warn "using single thread, set more threads by setting JULIA_NUM_THREADS environment variable"
+  end
 
   cmd_args = parse_commandline()
   @info "Parsed args" cmd_args

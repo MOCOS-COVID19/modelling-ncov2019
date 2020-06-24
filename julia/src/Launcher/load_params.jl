@@ -14,8 +14,9 @@ function read_params(json, rng::AbstractRNG)
   tracking_forward_delay = json["contact_tracking"]["forward_detection_delay"]  |> float
   testing_time = json["contact_tracking"]["testing_time"]  |> float
 
-  phone_tracking_usage = json["phone_tracking"]["usage"] |> float
-  phone_tracking_testing_delay = json["phone_tracking"]["detection_delay"] |> float
+  phone_tracking = get(json, "phone_tracking", nothing)
+  phone_tracking_usage = isnothing(phone_tracking) ? 0.0 : phone_tracking["usage"] |> float
+  phone_tracking_testing_delay = isnothing(phone_tracking) ? 1.0 : phone_tracking : ["detection_delay"] |> float
 
   population_path = json["population_path"] # <= JSON
   population_path::AbstractString # checks if it was indeed a string
@@ -63,5 +64,5 @@ function read_params(json, rng::AbstractRNG)
     spreading_alpha=spreading_alpha,
     spreading_x0=spreading_x0,
     spreading_truncation=spreading_truncation
-)
+  )
 end

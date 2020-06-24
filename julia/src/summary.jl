@@ -1,13 +1,11 @@
 using Distributed
 
-@everywhere begin
-  using CSV
-  using DataFrames
-  using FileIO
-  using JLD2
-  using ProgressMeter
-  using Statistics
-end
+using CSV
+using DataFrames
+@everywhere using FileIO
+using JLD2
+using ProgressMeter
+using Statistics
 
 @assert length(ARGS) >= 1 "no experiment path given"
 
