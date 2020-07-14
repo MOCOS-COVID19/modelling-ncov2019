@@ -5,6 +5,8 @@ python:
 jobs:
   include:
     - stage "Python"
-      install: make requirements
       language: python
-      script: make lint
+      install: 
+        - make requirements
+      script: 
+        - make lint
