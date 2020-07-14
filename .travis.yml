@@ -1,4 +1,3 @@
-language: python
 python:
   - "3.6"      # current default Python on Travis CI
   - "3.7"
@@ -6,6 +5,8 @@ python:
 jobs:
   include:
     - stage "Requirements"
-    script: make requirements
+      language: python
+      script: make requirements
     - stage "Lint"
-    script: make lint
+      language: python
+      script: make lint
