@@ -9,6 +9,7 @@ awscli==1.18.16
 flake8==3.7.9
 gitpython==3.1.0
 python-dotenv>=0.5.1
+docutils<0.16,>=0.10
 
 fire==0.2.1
 jupyter==1.0.0
