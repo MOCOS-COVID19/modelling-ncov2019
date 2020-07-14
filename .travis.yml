@@ -4,9 +4,7 @@ python:
   - "3.8"
 jobs:
   include:
-    - stage "Requirements"
-      language: python
-      script: make requirements
-    - stage "Lint"
+    - stage "Python"
+      install: make requirements
       language: python
       script: make lint
