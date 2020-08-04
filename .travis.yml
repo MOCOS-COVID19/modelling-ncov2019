@@ -4,31 +4,34 @@ jobs:
   # Python jobs
     - language: python
       python: 3.6
-      install: 
+      install:
         - pip install -U pip setuptools wheel
         - pip install -r requirements.txt
-      script: 
+      script:
         - make lint
     - language: python
       python: 3.7
-      install: 
+      install:
         - pip install -U pip setuptools wheel
         - pip install -r requirements.txt
-      script: 
+      script:
         - make lint
     - language: python
       python: 3.8
-      install: 
+      install:
         - pip install -U pip setuptools wheel
         - pip install -r requirements.txt
-      script: 
+      script:
         - make lint
-   # Julia jobs  
+   # Julia jobs
     - language: julia
       julia: 1.0.5
       script:
-        - julia --project=julia/src -e 'using Pkg; Pkg.instantiate(); Pkg.build();'
+        - julia --project=julia/src/Launcher -e 'using Pkg; Pkg.instantiate(); Pkg.build();'
+        - julia --project=julia/src/Simulation -e 'using Pkg; Pkg.instantiate(); Pkg.build();'
+
     - language: julia
       julia: 1.4.2
       script:
-        - julia --project=julia/src -e 'using Pkg; Pkg.instantiate(); Pkg.build();'   
+        - julia --project=julia/src/Launcher -e 'using Pkg; Pkg.instantiate(); Pkg.build();'
+        - julia --project=julia/src/Simulation -e 'using Pkg; Pkg.instantiate(); Pkg.build();'
